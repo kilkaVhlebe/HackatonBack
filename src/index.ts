@@ -1,6 +1,7 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { user}  from './router/user.router.js'
+import "dotenv/config"
 
 const app = new Hono()
 
@@ -10,7 +11,10 @@ app.get('/', (c) => {
 
 app.route('/', user)
 
-const port = 3000
+const port = Number(process.env.PORT)
+if(!port) throw new Error("ENV PARSING ERROR")
+
+  
 console.log(`Server is running on port ${port}`)
 
 serve({
