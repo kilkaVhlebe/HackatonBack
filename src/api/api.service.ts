@@ -57,10 +57,91 @@ async getWagon(wagonId: number) {
      .catch((error)=>{
          throw new Error(error)
      })
- }
-
 }
 
-const api = new ApiService()
+async getTrain(trainId: number) {
+    await axios.get(`/api/info/train/${trainId}`,{
+     headers: {
+         Authorization: `Bearer ${process.env.API_TOKEN}`
+     }
+    })
+     .then(async (response) => {
+         if(response.status===403) {
+             await updateApiToken()
+             this.getTrain(trainId)
+         } 
+         return response.data
+     })
+     .catch((error)=>{
+         throw new Error(error)
+     })
+}
 
-api.getWagons(1)
+async getSeats(wagonId: number) {
+    await axios.get(`/api/info/seats?${wagonId}`,{
+     headers: {
+         Authorization: `Bearer ${process.env.API_TOKEN}`
+     }
+    })
+     .then(async (response) => {
+         if(response.status===403) {
+             await updateApiToken()
+             this.getSeats(wagonId)
+         } 
+         return response.data
+     })
+     .catch((error)=>{
+         throw new Error(error)
+     })
+}
+
+async getSeat(seatId: number) {
+    await axios.get(`/api/info/seats/${seatId}`,{
+     headers: {
+         Authorization: `Bearer ${process.env.API_TOKEN}`
+     }
+    })
+     .then(async (response) => {
+         if(response.status===403) {
+             await updateApiToken()
+             this.getSeats(seatId)
+         } 
+         return response.data
+     })
+     .catch((error)=>{
+         throw new Error(error)
+     })
+}
+
+async createOrder(props: {trainId: number, wagonId: number, seatsId: number[]}) {
+    const maxAttempts = 5; 
+    const attemptDelay = 72000; 
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+
+    await axios.post(`/api/order`,{
+        train_id: props.trainId,
+        wagon_id: props.wagonId,
+        seat_ids: props.seatsId
+    },
+{
+    headers:{
+        Authorization: `Bearer ${process.env.API_TOKEN}`
+    }
+    })
+    .then(async (response) => {
+    if(response.status===403) {
+        await updateApiToken()
+        this.createOrder(props)
+    } 
+    return response.data
+    })
+    .catch((error)=>{
+    throw new Error(error)
+    })
+    }
+attempts++;
+await new Promise(resolve => setTimeout(resolve, attemptDelay));
+}
+}
