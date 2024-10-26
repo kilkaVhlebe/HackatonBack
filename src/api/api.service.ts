@@ -99,7 +99,7 @@ async getSeat (seatId: number): Promise<Seat | null> {
 }
 
 async order  (train_id: number, wagon_id: number, seat_ids: number[]): Promise<Order | null>  {
-    return await httpInstance.post(`${API}/info/order`,
+    return await httpInstance.post(`${API}/order`,
         {train_id, wagon_id, seat_ids}
     ).then((response) => {
         return response.data
@@ -110,36 +110,82 @@ async order  (train_id: number, wagon_id: number, seat_ids: number[]): Promise<O
 
 async bookingCheck() {
     const booking = await getBookingByStatus(true);
-    if(!booking) {return}
-    
+    if (!booking) return;
+
+    const trainCache: { [key: string]: any } = {};
+    const seatCache: { [key: string]: any } = {};
+
+    const getTrainsCached = async(active: boolean, startPoint: string, endPoint: string) => {
+        const key = `${active}-${startPoint}-${endPoint}`;
+        if (trainCache[key]) return trainCache[key];
+        const trains = await this.getTrains(active, startPoint, endPoint);
+        trainCache[key] = trains;
+        return trains;
+    }
+
+    const getSeatsCached = async(wagonId: number) => {
+        if (seatCache[wagonId]) return seatCache[wagonId];
+        const seats = await this.getSeats(wagonId);
+        seatCache[wagonId] = seats;
+        return seats;
+    }
+
     let isBookingProcessed = false;
 
     for (const book of booking) {
-        
         if (isBookingProcessed) break;
-        if(!book.isActive) break;
-        
-        setTimeout(1000)
+        if (!book.isActive) break;
 
-        const trains = await this.getTrains(true, book.startPoint, book.endPoint);
-        for (const json of trains) {
+        try {
+            const trains = await getTrainsCached(true, book.startPoint, book.endPoint);
+            if (!trains) continue;
             
-            if (book.availableSeatsCount <= json.available_seats_count && book.startpoint_departure === json.startpoint_departure.split(' ')[0]) {
-                for (const wagon of json.wagons_info) {
-                    if (wagon.type == book.wagon_type) {
-                        if (book.autoBooking) {
-                            await changeBookingStatus(book.id);
-                        } else {
-                            await changeBookingStatus(book.id);
+            for (const train of trains) {
+                if (book.availableSeatsCount <= train.available_seats_count && book.startpoint_departure === train.startpoint_departure.split(' ')[0]) {
+                    
+                    for (const wagon of train.wagons_info) {
+                        if (wagon.type === book.wagon_type) {
+                            const seats = await getSeatsCached(wagon.wagon_id);
+                            if (!seats) continue;
+
+                            let freeSeats = 0;
+                            for (const seat of seats) {
+                                if (seat.bookingStatus === "FREE") {
+                                    freeSeats++;
+                                }
+                            }
+
+                            if (freeSeats < book.availableSeatsCount) continue;
+                            
+                            let seatCount = 0;
+                            let seatForBooking: number[] = [];
+                            for (const seat of seats) {
+                                if (seat.bookingStatus === "FREE" && seatCount < book.availableSeatsCount) {
+                                    seatForBooking.push(seat.seat_id);
+                                    seatCount++;
+                                }
+                            }
+
+                            if (seatForBooking.length >= book.availableSeatsCount) {
+                                if (book.autoBooking) {
+                                    console.log(seatForBooking);
+                                    const order = await this.order(train.train_id, wagon.wagon_id, seatForBooking);
+                                    console.log(order);
+                                }
+                                await changeBookingStatus(book.id);
+                                isBookingProcessed = true;
+                                break;
+                            }
                         }
-                        isBookingProcessed = true;
-                        break; 
+                        if (isBookingProcessed) break;
                     }
+                    if (isBookingProcessed) break;
                 }
-                if (isBookingProcessed) break; 
             }
+            if (isBookingProcessed) break;
+        } catch (error) {
+            console.error("Error processing booking:", error);
         }
-        if (isBookingProcessed) break;
     }
 }
 

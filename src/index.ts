@@ -12,7 +12,16 @@ const app = new Hono()
 const apiService = new ApiService()
 
 app.use(authMiddleware)
-setInterval(()=>apiService.bookingCheck(),1000)
+
+let isRunning = false;
+setInterval(async () => {
+  if (isRunning) return;
+  isRunning = true;
+  console.log('гг');
+  
+  await apiService.bookingCheck();
+  isRunning = false;
+}, 1000);
 
 
 app.use(
