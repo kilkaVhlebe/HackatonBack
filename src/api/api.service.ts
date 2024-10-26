@@ -1,147 +1,135 @@
-import axios from "axios";
-import {updateApiToken} from './api.connection.js'
-import { error } from "console";
+import axios from "axios"
 
-
-export default class ApiService {
-
-async getWagons(traindId: number) {
-   await axios.get(`/api/info/wagons?trainId=${traindId}`,{
+const API = "http://84.252.135.231/api"
+const httpInstance = axios.create({
     headers: {
-        Authorization: `Bearer ${process.env.API_TOKEN}`
+        common: {
+            Authorization: "Bearer " + process.env.API_TOKEN,
+        },
+    },
+})
+
+httpInstance.interceptors.response.use((response) => response, async (error) => {
+    if (error.response && error.status == 403) {
+        try {
+            const token = await updateToken()
+            error.config.headers["Authorization"] = `Bearer ${token}`
+            return httpInstance(error.config)
+        } catch (error) {
+            return Promise.reject(error)
+        }
     }
-   })
-    .then(async (response) => {
-        if(response.status===403) {
-            await updateApiToken()
-            this.getWagons(traindId)
-        } 
-        return response.data
+    return Promise.reject(error)
+})
+
+const updateToken = async (): Promise<string> => {
+    const email = process.env.API_EMAIL
+    const password = process.env.API_PASSWORD
+
+    return await axios.post(`${API}/auth/login`,
+        { email, password }
+    ).then((response) => {
+        httpInstance.defaults.headers.common["Authorization"] = response.data.token
+        return response.data.token
+    }).catch((error) => {
+        throw error.status == 400 
+            ? new Error(`Invalid user email: ${email}`)
+            : new Error(error)
     })
-    .catch((error)=>{
+}
+
+const getWagons = async (trainId: number): Promise<Wagon[] | null> => {
+    return await httpInstance.get(`${API}/info/wagons?trainId=${trainId}`).then((response) => {
+        return response.data
+    }).catch((_) => {
+        return null
+    })
+}
+
+const getWagon = async (wagonId: number): Promise<Wagon | null> => {
+    return await httpInstance.get(`${API}/info/wagons/${wagonId}`).then((response) => {
+        return response.data
+    }).catch((_) => {
+        return null
+    })
+}
+
+const getTrains = async (booking_available: boolean = true, start_point: string = "%.*%", end_point: string = "%.*%", stop_points: string = ""): Promise<Train[]> => {
+    return await httpInstance.get(`${API}/info/trains`).then((response) => {
+        return response.data
+    }).catch((error) => {
+        throw error.status == 400 
+            ? new Error("Invalid filter data.")
+            : new Error(error)
+    })
+}
+
+const getTrain = async (trainId: number): Promise<Train | null> => {
+    return await httpInstance.get(`${API}/info/train/${trainId}`).then((response) => {
+        return response.data
+    }).catch((_) => {
+        return null
+    })
+}
+
+const getSeats = async (wagonId: number): Promise<Seat[] | null> => {
+    return await httpInstance.get(`${API}/info/seats?wagonId=${wagonId}`).then((response) => {
+        return response.data
+    }).catch((_) => {
+        return null
+    })
+}
+
+const getSeat = async (seatId: number): Promise<Seat | null> => {
+    return await httpInstance.get(`${API}/info/seat/${seatId}`).then((response) => {
+        return response.data
+    }).catch((_) => {
+        return null
+    })
+}
+
+export const order = async (train_id: number, wagon_id: number, seat_ids: number[]): Promise<Order | null> => {
+    return await httpInstance.post(`${API}/info/order`,
+        {train_id, wagon_id, seat_ids}
+    ).then((response) => {
+        return response.data
+    }).catch((error) => {
         throw new Error(error)
     })
 }
 
-async getWagon(wagonId: number) {
-    await axios.get(`/api/info/wagons/${wagonId}`,{
-     headers: {
-         Authorization: `Bearer ${process.env.API_TOKEN}`
-     }
-    })
-     .then(async (response) => {
-         if(response.status===403) {
-             await updateApiToken()
-             this.getWagon(wagonId)
-         } 
-         return response.data
-     })
-     .catch((error)=>{
-         throw new Error(error)
-     })
- }
-
- async getTrains(params:{booking_available?: boolean, start_point: string, end_point: string, stop_points: string}) {
-    await axios.get(`/api/info/trains`,{
-     headers: {
-         Authorization: `Bearer ${process.env.API_TOKEN}`
-     }
-    })
-     .then(async (response) => {
-         if(response.status===403) {
-             await updateApiToken()
-             this.getTrains(params)
-         } 
-         return response.data
-     })
-     .catch((error)=>{
-         throw new Error(error)
-     })
+type Order = {
+    order_id: number
+    status: "Success" | "Failure"
 }
 
-async getTrain(trainId: number) {
-    await axios.get(`/api/info/train/${trainId}`,{
-     headers: {
-         Authorization: `Bearer ${process.env.API_TOKEN}`
-     }
-    })
-     .then(async (response) => {
-         if(response.status===403) {
-             await updateApiToken()
-             this.getTrain(trainId)
-         } 
-         return response.data
-     })
-     .catch((error)=>{
-         throw new Error(error)
-     })
+type Train = {
+    train_id: number
+    global_route: string
+    startpoint_departure: string
+    endpoint_arrival: string
+    detailed_route: Route[]
+    wagons_info: Wagon[]
+    available_seats_count: number
 }
 
-async getSeats(wagonId: number) {
-    await axios.get(`/api/info/seats?${wagonId}`,{
-     headers: {
-         Authorization: `Bearer ${process.env.API_TOKEN}`
-     }
-    })
-     .then(async (response) => {
-         if(response.status===403) {
-             await updateApiToken()
-             this.getSeats(wagonId)
-         } 
-         return response.data
-     })
-     .catch((error)=>{
-         throw new Error(error)
-     })
+type Route = {
+    name: string
+    num: number
+    arrival: string
+    departure: string
 }
 
-async getSeat(seatId: number) {
-    await axios.get(`/api/info/seats/${seatId}`,{
-     headers: {
-         Authorization: `Bearer ${process.env.API_TOKEN}`
-     }
-    })
-     .then(async (response) => {
-         if(response.status===403) {
-             await updateApiToken()
-             this.getSeats(seatId)
-         } 
-         return response.data
-     })
-     .catch((error)=>{
-         throw new Error(error)
-     })
+type Wagon =  {
+    wagon_id: number,
+    type: "LOCAL" | "PLATZCART" | "COUPE" | "SV" | "LUX"
+    seats?: Seat[]
 }
 
-async createOrder(props: {trainId: number, wagonId: number, seatsId: number[]}) {
-    const maxAttempts = 5; 
-    const attemptDelay = 72000; 
-    let attempts = 0;
-
-    while (attempts < maxAttempts) {
-
-    await axios.post(`/api/order`,{
-        train_id: props.trainId,
-        wagon_id: props.wagonId,
-        seat_ids: props.seatsId
-    },
-{
-    headers:{
-        Authorization: `Bearer ${process.env.API_TOKEN}`
-    }
-    })
-    .then(async (response) => {
-    if(response.status===403) {
-        await updateApiToken()
-        this.createOrder(props)
-    } 
-    return response.data
-    })
-    .catch((error)=>{
-    throw new Error(error)
-    })
-    }
-attempts++;
-await new Promise(resolve => setTimeout(resolve, attemptDelay));
-}
+type Seat = {
+    seat_id: number,
+    seatNum: string,
+    block: string,
+    price: number,
+    bookingStatus: "CLOSED" | "FREE" | "BOOKED"
 }
