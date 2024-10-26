@@ -4,6 +4,7 @@ import { user}  from './router/user.router.js'
 import "dotenv/config"
 import { authMiddleware } from './middleware/auth.middleware.js'
 import { cors } from 'hono/cors'
+import { book } from './router/booking.router.js'
 
 const app = new Hono()
 
@@ -25,6 +26,7 @@ app.get('/', (c) => {
 })
 
 app.route('/', user)
+app.route('/', book)
 
 const port = Number(process.env.PORT)
 if(!port) throw new Error("ENV PARSING ERROR")

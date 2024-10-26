@@ -43,6 +43,8 @@ export default class ApiService {
 
 async getWagons  (trainId: number): Promise<Wagon[] | null>  {
     return await httpInstance.get(`${API}/info/wagons?trainId=${trainId}`).then((response) => {
+        console.log(response.data);
+        
         return response.data
     }).catch((_) => {
         return null
@@ -58,7 +60,7 @@ async getWagon (wagonId: number): Promise<Wagon | null> {
 }
 
 async getTrains (booking_available: boolean = true, start_point: string = "%.*%", end_point: string = "%.*%", stop_points: string = ""): Promise<Train[]>  {
-    return await httpInstance.get(`${API}/info/trains`).then((response) => {
+    return await httpInstance.get(`${API}/info/trains?booking_available=${booking_available}&start_point=${start_point}&end_point=${end_point}&stop_points=${stop_points}`).then((response) => {
         return response.data
     }).catch((error) => {
         throw error.status == 400 
