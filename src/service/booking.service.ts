@@ -59,4 +59,17 @@ export default class BookingService {
         
     }
 
+    async createBokingQuery (context: Context) {
+        try {
+            const request = await context.req.json()
+            if(!request.user_id || !request.start_point || !request.end_point || !request.available_seats_count || !request.auto_booking) {
+                context.body('Bad data', 400)
+            }
+            
+        } catch (error) {
+            console.error(error);
+            return context.body('Intrernal server error', 500)
+        }
+    }
+
 }
