@@ -8,11 +8,11 @@ export default class UserService {
     async userRegistration(context:  Context) {
         const request = await context.req.json()
         if(!request.fullName || !request.login || !request.password ) {
-            return context.json(400)
+            return context.json({},400)
         }
 
         if(await getUserByLogin(request.login)) {
-            return context.json(409)
+            return context.json({},409)
         }
 
         await genSalt(10)

@@ -33,6 +33,8 @@ model BookingQueue {
   userId              Int
   startPoint          String
   endPoint            String
+  startpoint_departure String
+  wagon_type       String
   availableSeatsCount Int
   autoBooking         Boolean
   isActive            Boolean

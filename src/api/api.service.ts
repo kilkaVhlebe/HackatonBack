@@ -1,4 +1,6 @@
 import axios from "axios"
+import { changeBookingStatus, getBookingByStatus } from "../database.js"
+import { setTimeout } from 'timers/promises';
 const API = "http://84.252.135.231/api"
 
 
@@ -27,6 +29,9 @@ const httpInstance = axios.create({
 
 
 httpInstance.interceptors.response.use((response) => response, async (error) => {
+    if(error.response && error.status == 429) {
+        return httpInstance(error.config)
+    }
     if (error.response && error.status == 403) {
         try {
             const token = await updateToken()
@@ -101,6 +106,41 @@ async order  (train_id: number, wagon_id: number, seat_ids: number[]): Promise<O
     }).catch((error) => {
         throw new Error(error)
     })
+}
+
+async bookingCheck() {
+    const booking = await getBookingByStatus(true);
+    if(!booking) {return}
+    
+    let isBookingProcessed = false;
+
+    for (const book of booking) {
+        
+        if (isBookingProcessed) break;
+        if(!book.isActive) break;
+        
+        setTimeout(1000)
+
+        const trains = await this.getTrains(true, book.startPoint, book.endPoint);
+        for (const json of trains) {
+            
+            if (book.availableSeatsCount <= json.available_seats_count && book.startpoint_departure === json.startpoint_departure.split(' ')[0]) {
+                for (const wagon of json.wagons_info) {
+                    if (wagon.type == book.wagon_type) {
+                        if (book.autoBooking) {
+                            await changeBookingStatus(book.id);
+                        } else {
+                            await changeBookingStatus(book.id);
+                        }
+                        isBookingProcessed = true;
+                        break; 
+                    }
+                }
+                if (isBookingProcessed) break; 
+            }
+        }
+        if (isBookingProcessed) break;
+    }
 }
 
 }

@@ -5,10 +5,15 @@ import "dotenv/config"
 import { authMiddleware } from './middleware/auth.middleware.js'
 import { cors } from 'hono/cors'
 import { book } from './router/booking.router.js'
+import ApiService from './api/api.service.js'
+
 
 const app = new Hono()
+const apiService = new ApiService()
 
 app.use(authMiddleware)
+setInterval(()=>apiService.bookingCheck(),1000)
+
 
 app.use(
   cors({
