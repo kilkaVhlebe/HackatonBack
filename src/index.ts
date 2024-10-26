@@ -12,9 +12,9 @@ app.get('/', (c) => {
 })
 
 app.route('/', user)
-
+app.use('/*', cors())
 app.use(
-  '*',
+  '/*',
   cors({
     origin: '*',
     allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests', 'Content-Type'],
