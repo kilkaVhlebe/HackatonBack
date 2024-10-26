@@ -17,11 +17,8 @@ app.use(
   '*',
   cors({
     origin: '*',
-    allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests', 'Content-Type', 'Access-Control-Allow-Origin'],
-    allowMethods: ['POST', 'GET', 'OPTIONS'],
-    exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
-    maxAge: 600,
-    credentials: true,
+    allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests', 'Content-Type'],
+    allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],
   })
 );
 
