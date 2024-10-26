@@ -3,7 +3,7 @@ import type { User, Token } from "@prisma/client";
 
 const prisma = new PrismaClient()
 
-export const createUser = async (user: {fullName: string, login: string, password: string}) => {
+export const createUser = async (user: {fullName: string, login: string, password: string}): Promise<User> => {
     return await prisma.user.create({data: user })
 }
 
