@@ -13,7 +13,7 @@ export default class BookingService {
 
             let availabletrains: { train_id: number; global_route: string; startpoint_departure: string; endpoint_arrival: string; detailed_route: { name: string; num: number; arrival: string; departure: string; }[]; wagons_info: { wagon_id: number; type: "LOCAL" | "PLATZCART" | "COUPE" | "SV" | "LUX"; seats?: { seat_id: number; seatNum: string; block: string; price: number; bookingStatus: "CLOSED" | "FREE" | "BOOKED"; }[]; }[]; available_seats_count: number; }[] = []
             trains.forEach((json) => {
-                if(request.available_seats_count <= json.available_seats_count) {
+                if(request.available_seats_count <= json.available_seats_count && request.startpoint_departure === json.startpoint_departure.split(' ')[0]) {
                     json.wagons_info.forEach((wagon) => {
                         if(wagon.type == request.wagon_type) {
                             availabletrains.push(json)
