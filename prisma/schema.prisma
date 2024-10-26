@@ -14,15 +14,27 @@ datasource db {
 }
 
 model User {
-  id        Int @id @default(autoincrement())
-  fullName  String
-  login     String @unique
-  password  String
-  tokens    Token[]
+  id           Int @id @default(autoincrement())
+  fullName     String
+  login        String @unique
+  password     String
+  tokens       Token[]
+  bookingQueue BookingQueue[]
 }
 
 model Token {
   id        Int @id @default(autoincrement())
   userId    Int
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BookingQueue {
+  id                  Int @id @default(autoincrement())
+  userId              Int
+  startPoint          String
+  endPoint            String
+  availableSeatsCount Int
+  autoBooking         Boolean
+  isActive            Boolean
+  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
