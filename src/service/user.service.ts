@@ -13,6 +13,10 @@ try {
     if(!request.fullName || !request.login || !request.password ) {
         return context.body("Registration failed", 400)
     }
+    const user = await getUserByLogin(request.login)
+    if(user.login=== request.login){
+        return context.body("Login alredy exists", 409)
+    }
     await genSalt(10)
         .then((salt) => hash(request.password, salt))
         .then((hash) => {
