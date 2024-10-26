@@ -28,17 +28,17 @@ export default class UserService {
     async userLogin(context: Context) {  
         const request = await context.req.json()
         if(!request.login || !request.password) {
-            return context.json(400)
+            return context.json({},400)
         }
 
         const user = await getUserByLogin(request.login)
         if(!user) {
-            return context.json(401)
+            return context.json({},401)
         }
 
         return await compare(request.password, user.password).then(async (result) => 
             result === true ? context.json({token: await createJwt(user.id)}, 200) 
-                            : context.json(401)
+                            : context.json({}, 401)
         )
     }
 

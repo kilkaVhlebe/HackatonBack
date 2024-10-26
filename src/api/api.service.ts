@@ -1,28 +1,8 @@
 import axios from "axios"
-
 const API = "http://84.252.135.231/api"
-const httpInstance = axios.create({
-    headers: {
-        common: {
-            Authorization: "Bearer " + process.env.API_TOKEN,
-        },
-    },
-})
 
-httpInstance.interceptors.response.use((response) => response, async (error) => {
-    if (error.response && error.status == 403) {
-        try {
-            const token = await updateToken()
-            error.config.headers["Authorization"] = `Bearer ${token}`
-            return httpInstance(error.config)
-        } catch (error) {
-            return Promise.reject(error)
-        }
-    }
-    return Promise.reject(error)
-})
 
-const updateToken = async (): Promise<string> => {
+const  updateToken  = async(): Promise<string> => {
     const email = process.env.API_EMAIL
     const password = process.env.API_PASSWORD
 
@@ -37,8 +17,31 @@ const updateToken = async (): Promise<string> => {
             : new Error(error)
     })
 }
+const httpInstance = axios.create({
+    headers: {
+        common: {
+            Authorization: "Bearer " + process.env.API_TOKEN,
+        },
+    },
+})
 
-const getWagons = async (trainId: number): Promise<Wagon[] | null> => {
+
+httpInstance.interceptors.response.use((response) => response, async (error) => {
+    if (error.response && error.status == 403) {
+        try {
+            const token = await updateToken()
+            error.config.headers["Authorization"] = `Bearer ${token}`
+            return httpInstance(error.config)
+        } catch (error) {
+            return Promise.reject(error)
+        }
+    }
+    return Promise.reject(error)
+})
+
+export default class ApiService {
+
+async getWagons  (trainId: number): Promise<Wagon[] | null>  {
     return await httpInstance.get(`${API}/info/wagons?trainId=${trainId}`).then((response) => {
         return response.data
     }).catch((_) => {
@@ -46,7 +49,7 @@ const getWagons = async (trainId: number): Promise<Wagon[] | null> => {
     })
 }
 
-const getWagon = async (wagonId: number): Promise<Wagon | null> => {
+async getWagon (wagonId: number): Promise<Wagon | null> {
     return await httpInstance.get(`${API}/info/wagons/${wagonId}`).then((response) => {
         return response.data
     }).catch((_) => {
@@ -54,7 +57,7 @@ const getWagon = async (wagonId: number): Promise<Wagon | null> => {
     })
 }
 
-const getTrains = async (booking_available: boolean = true, start_point: string = "%.*%", end_point: string = "%.*%", stop_points: string = ""): Promise<Train[]> => {
+async getTrains (booking_available: boolean = true, start_point: string = "%.*%", end_point: string = "%.*%", stop_points: string = ""): Promise<Train[]>  {
     return await httpInstance.get(`${API}/info/trains`).then((response) => {
         return response.data
     }).catch((error) => {
@@ -64,7 +67,7 @@ const getTrains = async (booking_available: boolean = true, start_point: string 
     })
 }
 
-const getTrain = async (trainId: number): Promise<Train | null> => {
+async getTrain  (trainId: number): Promise<Train | null>  {
     return await httpInstance.get(`${API}/info/train/${trainId}`).then((response) => {
         return response.data
     }).catch((_) => {
@@ -72,7 +75,7 @@ const getTrain = async (trainId: number): Promise<Train | null> => {
     })
 }
 
-const getSeats = async (wagonId: number): Promise<Seat[] | null> => {
+async getSeats  (wagonId: number): Promise<Seat[] | null>  {
     return await httpInstance.get(`${API}/info/seats?wagonId=${wagonId}`).then((response) => {
         return response.data
     }).catch((_) => {
@@ -80,7 +83,7 @@ const getSeats = async (wagonId: number): Promise<Seat[] | null> => {
     })
 }
 
-const getSeat = async (seatId: number): Promise<Seat | null> => {
+async getSeat (seatId: number): Promise<Seat | null> {
     return await httpInstance.get(`${API}/info/seat/${seatId}`).then((response) => {
         return response.data
     }).catch((_) => {
@@ -88,7 +91,7 @@ const getSeat = async (seatId: number): Promise<Seat | null> => {
     })
 }
 
-export const order = async (train_id: number, wagon_id: number, seat_ids: number[]): Promise<Order | null> => {
+async order  (train_id: number, wagon_id: number, seat_ids: number[]): Promise<Order | null>  {
     return await httpInstance.post(`${API}/info/order`,
         {train_id, wagon_id, seat_ids}
     ).then((response) => {
@@ -96,6 +99,8 @@ export const order = async (train_id: number, wagon_id: number, seat_ids: number
     }).catch((error) => {
         throw new Error(error)
     })
+}
+
 }
 
 type Order = {
