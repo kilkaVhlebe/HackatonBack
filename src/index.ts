@@ -17,8 +17,7 @@ let isRunning = false;
 setInterval(async () => {
   if (isRunning) return;
   isRunning = true;
-  console.log('гг');
-  
+
   await apiService.bookingCheck();
   isRunning = false;
 }, 1000);

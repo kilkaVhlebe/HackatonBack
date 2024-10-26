@@ -168,9 +168,8 @@ async bookingCheck() {
 
                             if (seatForBooking.length >= book.availableSeatsCount) {
                                 if (book.autoBooking) {
-                                    console.log(seatForBooking);
                                     const order = await this.order(train.train_id, wagon.wagon_id, seatForBooking);
-                                    console.log(order);
+                                    
                                 }
                                 await changeBookingStatus(book.id);
                                 isBookingProcessed = true;
