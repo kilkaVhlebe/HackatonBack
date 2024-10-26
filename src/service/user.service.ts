@@ -14,6 +14,7 @@ try {
         return context.body("Registration failed", 400)
     }
     const user = await getUserByLogin(request.login)
+    if(!user) return context.body("Wrong login", 401)
     if(user.login=== request.login){
         return context.body("Login alredy exists", 409)
     }
