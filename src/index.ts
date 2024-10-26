@@ -13,18 +13,17 @@ app.get('/', (c) => {
 
 app.route('/', user)
 
-app.use('/', cors())
 app.use(
   '*',
   cors({
     origin: '*',
-    allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests'],
+    allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests', 'Content-Type'],
     allowMethods: ['POST', 'GET', 'OPTIONS'],
     exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
     maxAge: 600,
     credentials: true,
   })
-)
+);
 
 
 
