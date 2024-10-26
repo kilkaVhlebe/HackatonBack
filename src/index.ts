@@ -3,9 +3,12 @@ import { Hono, type Env, type Next } from 'hono'
 import { user}  from './router/user.router.js'
 import { cors } from 'hono/cors'
 import "dotenv/config"
+import { authMiddleware } from './middleware/auth.middleware.js'
 
 
 const app = new Hono()
+
+app.use(authMiddleware)
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
