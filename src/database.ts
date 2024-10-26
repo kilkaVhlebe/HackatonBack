@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import type { User, Token } from "@prisma/client";
+import type { User, Token, BookingQueue } from "@prisma/client";
 
 const prisma = new PrismaClient()
 
@@ -61,5 +61,50 @@ export const deleteToken = async (sessionId: number): Promise<Token> => {
         where: {
             id: sessionId,
         },
+    })
+}
+
+export const createBooking = async (booking: {userId: number, startPoint: string, endPoint: string, availableSeatsCount: number, autoBooking: boolean, isActive: boolean}): Promise<BookingQueue> => {
+    return await prisma.bookingQueue.create({data: booking})
+}
+
+export const getBookingById = async (bookingId: number): Promise<BookingQueue | null> => {
+    return await prisma.bookingQueue.findUnique({
+        where: {
+            id: bookingId
+        }
+    })
+}
+
+export const getBookingByUserId = async (userId: number): Promise<BookingQueue[]> => {
+    return await prisma.bookingQueue.findMany({
+        where: {
+            userId
+        }
+    })
+}
+
+export const changeBookingStatus = async (bookingId: number): Promise<BookingQueue | null> => {
+    const booking = await getBookingById(bookingId)
+    
+    if (!booking) {
+        return null
+    }
+
+    return await prisma.bookingQueue.update({
+        where: {
+            id: bookingId
+        },
+        data: {
+            isActive: !booking.isActive
+        }
+    })
+}
+
+export const deleteBooking = async (bookingId: number): Promise<BookingQueue> => {
+    return await prisma.bookingQueue.delete({
+        where: {
+            id: bookingId
+        }
     })
 }
