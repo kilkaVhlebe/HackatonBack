@@ -19,6 +19,7 @@ app.use(
     origin: '*',
     allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests', 'Content-Type'],
     allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],
+    exposeHeaders: ['Content-Length', 'X-Kuma-Revision']
   })
 );
 
