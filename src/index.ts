@@ -1,7 +1,9 @@
 import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
+import { Hono, type Env, type Next } from 'hono'
 import { user}  from './router/user.router.js'
+import { cors } from 'hono/cors'
 import "dotenv/config"
+
 
 const app = new Hono()
 
@@ -11,10 +13,25 @@ app.get('/', (c) => {
 
 app.route('/', user)
 
+app.use('/', cors())
+app.use(
+  '*',
+  cors({
+    origin: '*',
+    allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests'],
+    allowMethods: ['POST', 'GET', 'OPTIONS'],
+    exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
+    maxAge: 600,
+    credentials: true,
+  })
+)
+
+
+
 const port = Number(process.env.PORT)
 if(!port) throw new Error("ENV PARSING ERROR")
 
-  
+
 console.log(`Server is running on port ${port}`)
 
 serve({
