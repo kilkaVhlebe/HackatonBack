@@ -10,6 +10,7 @@ import { booking } from './router/booking.router.js'
 import { train } from './router/train.router.js'
 import { wagon } from './router/wagon.router.js'
 import { seats } from './router/seat.router.js'
+import { bookingCheck } from './api/api.service.js'
 
 const requiredEnvVars = [ 
   'PORT',                 
@@ -37,6 +38,15 @@ app.route('/', wagon)
 app.route('/', seats)
 app.route('/', booking)
   
+let isRunning = false;
+setInterval(async () => {
+  if (isRunning) return;
+  isRunning = true;
+
+  await bookingCheck();
+  isRunning = false;
+}, 1000);
+
 const port = Number(process.env.PORT)
 console.log(`Server is running on port ${port}`)
 
