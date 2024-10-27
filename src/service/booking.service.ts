@@ -16,8 +16,8 @@ export default class BookingService {
 
     async createBooking(context: Context) {
         const request = await context.req.json()
-
-        if(!request.user_id || !request.start_point || !request.end_point || !request.available_seats_count || !request.auto_booking) {
+        //
+        if(!request.user_id || !request.start_point || !request.end_point  || !request.startpoint_departure || !request.available_seats_count || !request.auto_booking) {
             return context.newResponse(null, 400)
         }
         

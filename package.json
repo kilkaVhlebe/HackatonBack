@@ -7,6 +7,8 @@
   "dependencies": {
     "@hono/node-server": "^1.13.2",
     "@prisma/client": "^5.21.1",
+    "@type-cacheable/core": "^14.1.0",
+    "@type-cacheable/redis-adapter": "^17.1.0",
     "axios": "^1.7.7",
     "bcrypt-ts": "^5.0.2",
     "dotenv": "^16.4.5",

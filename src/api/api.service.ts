@@ -46,8 +46,6 @@ httpInstance.interceptors.response.use((response) => response, async (error) => 
 
 export const getWagons = async (trainId: number): Promise<Wagon[] | null> => {
     return await httpInstance.get(`${API}/info/wagons?trainId=${trainId}`).then((response) => {
-        console.log(response.data);
-        
         return response.data
     }).catch((_) => {
         return null
@@ -139,19 +137,22 @@ export const bookingCheck = async () => {
             if (!trains) continue;
             
             for (const train of trains) {
-                if (book.availableSeatsCount <= train.available_seats_count && book.startpoint_departure === train.startpoint_departure.split(' ')[0]) {
+                if (book.availableSeatsCount <= train.available_seats_count && book.startpointDeparture === train.startpoint_departure.split(' ')[0]){
                     
                     for (const wagon of train.wagons_info) {
-                        if (wagon.type === book.wagon_type) {
+                        
+                        if (wagon.type === book.wagonType) {
+                            
                             const seats = await getSeatsCached(wagon.wagon_id);
                             if (!seats) continue;
-
+                                
                             let freeSeats = 0;
                             for (const seat of seats) {
                                 if (seat.bookingStatus === "FREE") {
                                     freeSeats++;
                                 }
                             }
+                            
 
                             if (freeSeats < book.availableSeatsCount) continue;
                             
@@ -165,9 +166,9 @@ export const bookingCheck = async () => {
                             }
 
                             if (seatForBooking.length >= book.availableSeatsCount) {
-                                if (book.autoBooking) {
-                                    await order(train.train_id, wagon.wagon_id, seatForBooking);
-                                    
+                                if (book.isAuto) {
+                                    const order1 = await order(train.train_id, wagon.wagon_id, seatForBooking);
+                                    console.log(order1);
                                 }
                                 await changeBookingStatus(book.id);
                                 isBookingProcessed = true;
