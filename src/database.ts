@@ -64,8 +64,8 @@ export const deleteToken = async (sessionId: number): Promise<Token> => {
     })
 }
 
-export const createBooking = async (userId: number, startPoint: string, endPoint: string,startpoint_departure: string, availableSeatsCount: number, autoBooking: boolean,wagon_type:boolean,  isActive: boolean): Promise<BookingQueue> => {
-    return await prisma.bookingQueue.create({data: {userId, startPoint, endPoint,startpoint_departure,  availableSeatsCount, autoBooking,isActive, wagon_type }})
+export const createBooking = async (userId: number, startPoint: string, endPoint: string,startpoint_departure: string, availableSeatsCount: number, isAuto: boolean, wagonType :boolean,  isActive: boolean): Promise<BookingQueue> => {
+    return await prisma.bookingQueue.create({data: {userId, startPoint, endPoint,startpoint_departure,  availableSeatsCount, isAuto, isActive, wagonType }})
 }
 
 export const getBookingById = async (bookingId: number): Promise<BookingQueue | null> => {

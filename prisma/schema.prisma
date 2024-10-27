@@ -19,7 +19,7 @@ model User {
   login        String @unique
   password     String
   tokens       Token[]
-  bookingQueue BookingQueue[]
+  booking      Booking[]
 }
 
 model Token {
@@ -28,15 +28,23 @@ model Token {
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model BookingQueue {
-  id                  Int @id @default(autoincrement())
-  userId              Int
-  startPoint          String
-  endPoint            String
-  startpoint_departure String
-  wagon_type       String
-  availableSeatsCount Int
-  autoBooking         Boolean
-  isActive            Boolean
-  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Booking {
+  id                   Int @id @default(autoincrement())
+  userId               Int
+  startPoint           String
+  endPoint             String
+  startpointDeparture  String
+  wagonType            String
+  availableSeatsCount  Int
+  isAuto               Boolean
+  isActive             Boolean
+  user                 User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order                Order?
+}
+
+model Order {
+  id        Int @id @default(autoincrement())
+  bookingId Int @unique
+  status    String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
