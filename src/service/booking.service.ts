@@ -11,25 +11,33 @@ export default class BookingService {
         try {
             const request = await context.req.json()
             const trains = await apiService.getTrains(true, request.start_point, request.end_point)
-            
-            const filter = () => {        
-                let availabletrains: { train_id: number; global_route: string; startpoint_departure: string; endpoint_arrival: string; detailed_route: { name: string; num: number; arrival: string; departure: string; }[]; wagons_info: { wagon_id: number; type: "LOCAL" | "PLATZCART" | "COUPE" | "SV" | "LUX"; seats?: { seat_id: number; seatNum: string; block: string; price: number; bookingStatus: "CLOSED" | "FREE" | "BOOKED"; }[]; }[]; available_seats_count: number; }[] = [];    
-                trains.forEach((json) => {
-                    if(request.available_seats_count <= json.available_seats_count && request.startpoint_departure === json.startpoint_departure.split(' ')[0]) {
-                        json.wagons_info.forEach((wagon) => {
-                            if(wagon.type == request.wagon_type) {
-                                return availabletrains.push(json)
-                            }
-                        })
-                    }   
-                })
-                return availabletrains
-            }
-            return context.json(filter(), 200)
     
-            } catch (error) {
+            let availableTrains: { train_id: number; global_route: string; startpoint_departure: string; endpoint_arrival: string; detailed_route: { name: string; num: number; arrival: string; departure: string; }[]; wagons_info: { wagon_id: number; type: "LOCAL" | "PLATZCART" | "COUPE" | "SV" | "LUX"; seats?: { seat_id: number; seatNum: string; block: string; price: number; bookingStatus: "CLOSED" | "FREE" | "BOOKED"; }[]; }[]; available_seats_count: number; }[] = [];
+    
+            for (const train of trains) {
+                if (request.available_seats_count <= train.available_seats_count && request.startpoint_departure === train.startpoint_departure.split(' ')[0]) {
+                    for (const wagon of train.wagons_info) {
+                        if (wagon.type === request.wagon_type) {
+                            const seats = await apiService.getSeats(wagon.wagon_id);
+                            if (!seats) continue;
+                            let freeSeats = 0;
+                            for (const seat of seats) {
+                                if (seat.bookingStatus === "FREE") {
+                                    freeSeats++;
+                                }
+                            }
+                            if (freeSeats >= request.available_seats_count) {
+                                availableTrains.push(train);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return context.json(availableTrains, 200);
+        } catch (error) {
             console.error(error);
-            return context.body('Intrernal server error', 500)
+            return context.body('Internal server error', 500);
         }
     }
 

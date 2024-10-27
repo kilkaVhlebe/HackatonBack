@@ -8,8 +8,10 @@ import { book } from './router/booking.router.js'
 import ApiService from './api/api.service.js'
 
 
+
 const app = new Hono()
 const apiService = new ApiService()
+
 
 app.use(authMiddleware)
 
@@ -33,6 +35,7 @@ app.use(
     credentials: true,
   })
 )
+
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
