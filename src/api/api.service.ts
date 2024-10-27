@@ -1,6 +1,6 @@
 import axios from "axios"
-import { changeBookingStatus, getBookingByStatus } from "../database.js"
-import { setTimeout } from 'timers/promises';
+import { getBookingByStatus, changeBookingStatus } from "../database.js"
+
 const API = "http://84.252.135.231/api"
 
 
@@ -44,9 +44,7 @@ httpInstance.interceptors.response.use((response) => response, async (error) => 
     return Promise.reject(error)
 })
 
-export default class ApiService {
-
-async getWagons  (trainId: number): Promise<Wagon[] | null>  {
+export const getWagons = async (trainId: number): Promise<Wagon[] | null> => {
     return await httpInstance.get(`${API}/info/wagons?trainId=${trainId}`).then((response) => {
         console.log(response.data);
         
@@ -56,7 +54,7 @@ async getWagons  (trainId: number): Promise<Wagon[] | null>  {
     })
 }
 
-async getWagon (wagonId: number): Promise<Wagon | null> {
+export const getWagon = async (wagonId: number): Promise<Wagon | null> => {
     return await httpInstance.get(`${API}/info/wagons/${wagonId}`).then((response) => {
         return response.data
     }).catch((_) => {
@@ -64,7 +62,7 @@ async getWagon (wagonId: number): Promise<Wagon | null> {
     })
 }
 
-async getTrains (booking_available: boolean = true, start_point: string = "%.*%", end_point: string = "%.*%", stop_points: string = ""): Promise<Train[]>  {
+export const getTrains = async (booking_available: boolean = true, start_point: string = "%.*%", end_point: string = "%.*%", stop_points: string = ""): Promise<Train[]>  => {
     return await httpInstance.get(`${API}/info/trains?booking_available=${booking_available}&start_point=${start_point}&end_point=${end_point}&stop_points=${stop_points}`).then((response) => {
         return response.data
     }).catch((error) => {
@@ -74,7 +72,7 @@ async getTrains (booking_available: boolean = true, start_point: string = "%.*%"
     })
 }
 
-async getTrain  (trainId: number): Promise<Train | null>  {
+export const getTrain = async (trainId: number): Promise<Train | null> => {
     return await httpInstance.get(`${API}/info/train/${trainId}`).then((response) => {
         return response.data
     }).catch((_) => {
@@ -82,7 +80,7 @@ async getTrain  (trainId: number): Promise<Train | null>  {
     })
 }
 
-async getSeats  (wagonId: number): Promise<Seat[] | null>  {
+export const getSeats = async (wagonId: number): Promise<Seat[] | null> => {
     return await httpInstance.get(`${API}/info/seats?wagonId=${wagonId}`).then((response) => {
         return response.data
     }).catch((_) => {
@@ -90,7 +88,7 @@ async getSeats  (wagonId: number): Promise<Seat[] | null>  {
     })
 }
 
-async getSeat (seatId: number): Promise<Seat | null> {
+export const getSeat = async (seatId: number): Promise<Seat | null> => {
     return await httpInstance.get(`${API}/info/seat/${seatId}`).then((response) => {
         return response.data
     }).catch((_) => {
@@ -98,7 +96,7 @@ async getSeat (seatId: number): Promise<Seat | null> {
     })
 }
 
-async order  (train_id: number, wagon_id: number, seat_ids: number[]): Promise<Order | null>  {
+export const order = async (train_id: number, wagon_id: number, seat_ids: number[]): Promise<Order | null> => {
     return await httpInstance.post(`${API}/order`,
         {train_id, wagon_id, seat_ids}
     ).then((response) => {
@@ -108,7 +106,7 @@ async order  (train_id: number, wagon_id: number, seat_ids: number[]): Promise<O
     })
 }
 
-async bookingCheck() {
+export const bookingCheck = async () => {
     const booking = await getBookingByStatus(true);
     if (!booking) return;
 
@@ -118,14 +116,14 @@ async bookingCheck() {
     const getTrainsCached = async(active: boolean, startPoint: string, endPoint: string) => {
         const key = `${active}-${startPoint}-${endPoint}`;
         if (trainCache[key]) return trainCache[key];
-        const trains = await this.getTrains(active, startPoint, endPoint);
+        const trains = await getTrains(active, startPoint, endPoint);
         trainCache[key] = trains;
         return trains;
     }
 
     const getSeatsCached = async(wagonId: number) => {
         if (seatCache[wagonId]) return seatCache[wagonId];
-        const seats = await this.getSeats(wagonId);
+        const seats = await getSeats(wagonId);
         seatCache[wagonId] = seats;
         return seats;
     }
@@ -168,7 +166,7 @@ async bookingCheck() {
 
                             if (seatForBooking.length >= book.availableSeatsCount) {
                                 if (book.autoBooking) {
-                                    const order = await this.order(train.train_id, wagon.wagon_id, seatForBooking);
+                                    await order(train.train_id, wagon.wagon_id, seatForBooking);
                                     
                                 }
                                 await changeBookingStatus(book.id);
@@ -188,15 +186,13 @@ async bookingCheck() {
     }
 }
 
-}
-
-type Order = {
+export type Order = {
     order_id: number
     status: "Success" | "Failure"
 }
 
-type Train = {
-    train_id: number
+export type Train = {
+    tratrin_id: number
     global_route: string
     startpoint_departure: string
     endpoint_arrival: string
@@ -205,20 +201,20 @@ type Train = {
     available_seats_count: number
 }
 
-type Route = {
+export type Route = {
     name: string
     num: number
     arrival: string
     departure: string
 }
 
-type Wagon =  {
+export type Wagon =  {
     wagon_id: number,
     type: "LOCAL" | "PLATZCART" | "COUPE" | "SV" | "LUX"
     seats?: Seat[]
 }
 
-type Seat = {
+export type Seat = {
     seat_id: number,
     seatNum: string,
     block: string,

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import type { User, Token, BookingQueue } from "@prisma/client";
+import type { User, Token, Booking } from "@prisma/client";
 
 const prisma = new PrismaClient()
 
@@ -64,42 +64,42 @@ export const deleteToken = async (sessionId: number): Promise<Token> => {
     })
 }
 
-export const createBooking = async (userId: number, startPoint: string, endPoint: string,startpoint_departure: string, availableSeatsCount: number, autoBooking: boolean,wagon_type:string,  isActive: boolean): Promise<BookingQueue> => {
-    return await prisma.bookingQueue.create({data: {userId, startPoint, endPoint,startpoint_departure,  availableSeatsCount, autoBooking,isActive, wagon_type }})
+export const createBooking = async (userId: number, startPoint: string, endPoint: string,startpointDeparture: string, availableSeatsCount: number, isAuto: boolean,wagonType:string,  isActive: boolean): Promise<Booking> => {    
+    return await prisma.booking.create({data: {userId, startPoint, endPoint,startpointDeparture,  availableSeatsCount, isAuto,isActive, wagonType }})
 }
 
-export const getBookingById = async (bookingId: number): Promise<BookingQueue | null> => {
-    return await prisma.bookingQueue.findUnique({
+export const getBookingById = async (bookingId: number): Promise<Booking | null> => {
+    return await prisma.booking.findUnique({
         where: {
             id: bookingId
         }
     })
 }
 
-export const getBookingByUserId = async (userId: number): Promise<BookingQueue[]> => {
-    return await prisma.bookingQueue.findMany({
+export const getBookingByUserId = async (userId: number): Promise<Booking[]> => {
+    return await prisma.booking.findMany({
         where: {
             userId
         }
     })
 }
 
-export const getBookingByStatus = async(isActive: boolean): Promise<BookingQueue[]>  => {
-    return await prisma.bookingQueue.findMany({
+export const getBookingByStatus = async(isActive: boolean): Promise<Booking[]>  => {
+    return await prisma.booking.findMany({
         where: {
             isActive
         }
     })
 }
 
-export const changeBookingStatus = async (bookingId: number): Promise<BookingQueue | null> => {
+export const changeBookingStatus = async (bookingId: number): Promise<Booking | null> => {
     const booking = await getBookingById(bookingId)
     
     if (!booking) {
         return null
     }
 
-    return await prisma.bookingQueue.update({
+    return await prisma.booking.update({
         where: {
             id: bookingId
         },
@@ -109,8 +109,8 @@ export const changeBookingStatus = async (bookingId: number): Promise<BookingQue
     })
 }
 
-export const deleteBooking = async (bookingId: number): Promise<BookingQueue> => {
-    return await prisma.bookingQueue.delete({
+export const deleteBooking = async (bookingId: number): Promise<Booking> => {
+    return await prisma.booking.delete({
         where: {
             id: bookingId
         }
