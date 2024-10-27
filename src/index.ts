@@ -27,7 +27,9 @@ requiredEnvVars.forEach(varName => {
 })
 
 
+
 const app = new Hono()
+
 
 app.use(authMiddleware)
 app.use(corsMiddleware)
@@ -46,6 +48,7 @@ setInterval(async () => {
   await bookingCheck();
   isRunning = false;
 }, 1000);
+
 
 const port = Number(process.env.PORT)
 console.log(`Server is running on port ${port}`)
